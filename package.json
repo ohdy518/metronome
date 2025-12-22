@@ -38,6 +38,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^0.562.0",
+		"animejs": "^4.2.2",
 		"tweakpane": "^4.0.5"
 	}
 }

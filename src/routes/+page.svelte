@@ -1,6 +1,7 @@
 <script>
     import {Play, Square, RotateCcw, SlidersVertical} from '@lucide/svelte'
     import {Pane} from 'tweakpane';
+    import {animate} from 'animejs'
     import {browser} from "$app/environment";
 
     // objects and auto-sets
@@ -58,6 +59,7 @@
     }
 
     function stop() {
+        pane.refresh()
         PARAMS.started = false;
         clearInterval(loopEntity);
     }
@@ -79,6 +81,7 @@
 
             if (PARAMS.beat > PARAMS.beatsPerBar) { PARAMS.beat -= PARAMS.beatsPerBar; PARAMS.bar++; }
             timer = Date.now()
+            pane.refresh()
         }
     }
 
