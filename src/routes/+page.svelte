@@ -1,7 +1,7 @@
 <script>
     import {Play, Square, RotateCcw, SlidersVertical} from '@lucide/svelte'
     import {Pane} from 'tweakpane';
-    import {animate} from 'animejs'
+    import {animate, easings, utils, waapi} from 'animejs'
     import {browser} from "$app/environment";
 
     // objects and auto-sets
@@ -11,6 +11,17 @@
     let beat = 1;
     let bar = 1;
     let started = false;
+
+    let barIndicator;
+    let beatIndicator;
+
+    if (browser) {
+        barIndicator = document.getElementById('bar-change-indicator');
+        beatIndicator = document.getElementById('beat-change-indicator');
+
+        // barIndicator.style.opacity = '0';
+        // beatIndicator.style.opacity = '0';
+    }
 
     const PARAMS = {
         beat: 1,
@@ -78,11 +89,31 @@
         let timeElapsed = Date.now() - timer
         if (timeElapsed >= (60/PARAMS.bpm*1000)) {
             PARAMS.beat++;
-
-            if (PARAMS.beat > PARAMS.beatsPerBar) { PARAMS.beat -= PARAMS.beatsPerBar; PARAMS.bar++; }
+            if (PARAMS.beat > PARAMS.beatsPerBar) {
+                PARAMS.beat -= PARAMS.beatsPerBar;
+                PARAMS.bar++;
+                extend(beatIndicator, 60/PARAMS.bpm*beatsPerBar*1000)
+                blink(barIndicator)
+            }
             timer = Date.now()
             pane.refresh()
         }
+    }
+
+    function blink(element) {
+        // console.log(element)
+        element.style.opacity = '1';
+        animate(element, {opacity: 0, duration: 250, ease: 'OutQuint'})
+    }
+
+    function extend(element, dur) {
+        element.style.transformOrigin = "bottom";
+        element.style.scale = "1 0";
+        waapi.animate(element, {
+            scale: ["1 0", "1 1"],
+            duration: dur,
+            ease: "linear",
+        });
     }
 
     function setting() {
@@ -115,8 +146,14 @@
             class="flex flex-col w-fit
             absolute top-1/2 transform -translate-y-1/2
             gap-3">
-        <span id="bar" class="font-regular text-4xl text-zinc-300">Bar <span class="font-medium text-zinc-50">{PARAMS.bar}</span></span>
-        <span id="beat" class="font-semibold text-9xl">{PARAMS.beat}<span class="font-regular text-4xl text-zinc-300">&nbsp;/&nbsp;{PARAMS.beatsPerBar}</span></span>
+        <div class="flex flex-row gap-4">
+            <div id="bar-change-indicator" class="bg-zinc-50 w-1.5 opacity-0"></div>
+            <span id="bar" class="font-regular text-4xl text-zinc-300">Bar <span class="font-medium text-zinc-50">{PARAMS.bar}</span></span>
+        </div>
+        <div class="flex flex-row gap-4">
+            <div id="beat-change-indicator" class="bg-zinc-50 w-1.5 scale-y-0"></div>
+            <span id="beat" class="font-semibold text-9xl">{PARAMS.beat}<span class="font-regular text-4xl text-zinc-300">&nbsp;/&nbsp;{PARAMS.beatsPerBar}</span></span>
+        </div>
     </div>
 
     <div
