@@ -13,6 +13,9 @@
     let beatIndicator;
 	let currentBeatIndicator;
 
+	let currentExtendAnimation;
+	let currentShiftAnimation;
+
     if (browser) {
         barIndicator = document.getElementById('bar-change-indicator');
         beatIndicator = document.getElementById('beat-change-indicator');
@@ -62,10 +65,17 @@
         init()
         startTime = Date.now()
         timer = Date.now()
+
+		extend(beatIndicator, 60/PARAMS.bpm*PARAMS.beatsPerBar*1000)
+		blink(barIndicator)
+		// shift(currentBeatIndicator, 60/PARAMS.bpm*1000/4)
+
         loopEntity = setInterval(() => {loop()}, updateResolution);
     }
 
     function stop() {
+		currentExtendAnimation.pause()
+		currentShiftAnimation.pause()
         pane.refresh()
         PARAMS.started = false;
         clearInterval(loopEntity);
@@ -79,6 +89,14 @@
     function init() {
         PARAMS.beat = 1;
         PARAMS.bar = 1;
+		// beatIndicator.style.scale = "0 1";
+		utils.set(beatIndicator, {scale: "0 1"})
+		waapi.animate(beatIndicator, {
+			scale: "0 1",
+			duration: 0,
+			ease: "linear",
+		});
+		utils.set(currentBeatIndicator, {x: 0})
     }
 
     function loop() {
@@ -109,7 +127,7 @@
     function extend(element, dur) {
         element.style.transformOrigin = "left";
         element.style.scale = "0 1";
-        waapi.animate(element, {
+        currentExtendAnimation = waapi.animate(element, {
             scale: ["0 1", "1 1"],
             duration: dur,
             ease: "linear",
@@ -124,7 +142,7 @@
 		} else {
 			amount = 12 / PARAMS.beatsPerBar;
 		}
-		animate(element, {
+		currentShiftAnimation = animate(element, {
 			x: `${back?'-':'+'}=${amount}rem`,
 			duration: 0,
 			ease: "inOutQuint",
@@ -146,6 +164,7 @@
             class="flex flex-row w-fit
             absolute top-1/4 transform -translate-y-[100%]
             gap-2 text-zinc-50">
+		<div id="control-change-indicator" class="bg-zinc-50 w-1.5 opacity-0"></div>
         <button id="start-button" class="group border-2 border-transparent hover:border-zinc-300 p-1.5" on:click={start}><Play class="group-hover:text-emerald-400"/></button>
         <button id="stop-button" class="group border-2 border-transparent hover:border-zinc-300 p-1.5" on:click={stop}><Square class="group-hover:text-rose-400"/></button>
         <button id="stop-button" class="group border-2 border-transparent hover:border-zinc-300 p-1.5" on:click={reset}><RotateCcw class="group-hover:text-amber-400"/></button>
@@ -163,7 +182,7 @@
             gap-3">
         <div class="flex flex-row gap-4">
             <div id="bar-change-indicator" class="bg-zinc-50 w-1.5 opacity-0"></div>
-            <span id="bar" class="font-regular text-4xl text-zinc-300">Bar <span class="font-medium text-zinc-50">{PARAMS.bar}</span></span>
+            <span id="bar" class="font-regular text-4xl text-zinc-300">Bar <span class="font-medium text-zinc-50">{utils.padStart(3, '0')(PARAMS.bar)}</span> &middot; 01:40</span>
         </div>
 			<div class="flex flex-row gap-4">
             <div id="beat-change-indicator-dep" class="bg-zinc-50 w-1.5 scale-y-0"></div>
@@ -180,12 +199,13 @@
 		</div>
     </div>
 
-    <div
-            class="flex flex-col w-fit
-            absolute top-3/4">
-        <span class="font-regular text-3xl text-zinc-300"><span class="font-medium text-zinc-50">{PARAMS.bpm}</span> BPM &middot; <span class="font-medium text-zinc-50">A&flat;m</span></span>
-    </div>
-
+	<div class="flex flex-row gap-4 absolute top-3/4">
+		<div id="bpm-key-change-indicator" class="bg-zinc-50 w-1.5 opacity-0"></div>
+		<div
+				class="flex flex-col w-fit">
+			<span class="font-regular text-3xl text-zinc-300"><span class="font-medium text-zinc-50">{PARAMS.bpm}</span> BPM &middot; <span class="font-medium text-zinc-50">A&flat;m</span></span>
+		</div>
+	</div>
     <div></div>
 </div>
 </div>
