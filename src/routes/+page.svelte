@@ -8,16 +8,15 @@
     let loopEntity;
     let startTime;
     let timer;
-    let beat = 1;
-    let bar = 1;
-    let started = false;
 
     let barIndicator;
     let beatIndicator;
+	let currentBeatIndicator;
 
     if (browser) {
         barIndicator = document.getElementById('bar-change-indicator');
         beatIndicator = document.getElementById('beat-change-indicator');
+		currentBeatIndicator = document.getElementById('current-beat-indicator');
 
         // barIndicator.style.opacity = '0';
         // beatIndicator.style.opacity = '0';
@@ -56,9 +55,6 @@
     // configs
     let updateResolution = 1
 
-    // setup
-    let bpm = 180
-    let beatsPerBar = 4
 
     function start() {
         if (PARAMS.started) {return}
@@ -89,12 +85,16 @@
         let timeElapsed = Date.now() - timer
         if (timeElapsed >= (60/PARAMS.bpm*1000)) {
             PARAMS.beat++;
+
             if (PARAMS.beat > PARAMS.beatsPerBar) {
                 PARAMS.beat -= PARAMS.beatsPerBar;
                 PARAMS.bar++;
-                extend(beatIndicator, 60/PARAMS.bpm*beatsPerBar*1000)
+                extend(beatIndicator, 60/PARAMS.bpm*PARAMS.beatsPerBar*1000)
                 blink(barIndicator)
-            }
+				shift(currentBeatIndicator, 60/PARAMS.bpm*1000/4, true)
+            } else {
+				shift(currentBeatIndicator, 60/PARAMS.bpm*1000/4)
+			}
             timer = Date.now()
             pane.refresh()
         }
@@ -107,14 +107,29 @@
     }
 
     function extend(element, dur) {
-        element.style.transformOrigin = "bottom";
-        element.style.scale = "1 0";
+        element.style.transformOrigin = "left";
+        element.style.scale = "0 1";
         waapi.animate(element, {
-            scale: ["1 0", "1 1"],
+            scale: ["0 1", "1 1"],
             duration: dur,
             ease: "linear",
         });
     }
+
+	function shift(element, dur, back = false) {
+		console.log(element, dur);
+		let amount = 0;
+		if (back) {
+			amount = 12 - 12/PARAMS.beatsPerBar;
+		} else {
+			amount = 12 / PARAMS.beatsPerBar;
+		}
+		animate(element, {
+			x: `${back?'-':'+'}=${amount}rem`,
+			duration: 0,
+			ease: "inOutQuint",
+		})
+	}
 
     function setting() {
         pane.hidden = !(pane.hidden)
@@ -150,10 +165,19 @@
             <div id="bar-change-indicator" class="bg-zinc-50 w-1.5 opacity-0"></div>
             <span id="bar" class="font-regular text-4xl text-zinc-300">Bar <span class="font-medium text-zinc-50">{PARAMS.bar}</span></span>
         </div>
-        <div class="flex flex-row gap-4">
-            <div id="beat-change-indicator" class="bg-zinc-50 w-1.5 scale-y-0"></div>
+			<div class="flex flex-row gap-4">
+            <div id="beat-change-indicator-dep" class="bg-zinc-50 w-1.5 scale-y-0"></div>
             <span id="beat" class="font-semibold text-9xl">{PARAMS.beat}<span class="font-regular text-4xl text-zinc-300">&nbsp;/&nbsp;{PARAMS.beatsPerBar}</span></span>
         </div>
+		<div class="pl-4 mt-2 flex flex-row">
+			<div id="beat-change-indicator-separator" class="bg-zinc-300 h-3 w-1"></div>
+			<div>
+				<div id="current-beat-indicator" class="bg-zinc-50 h-1" style="width: {12/PARAMS.beatsPerBar}rem"></div>
+
+				<div id="beat-change-indicator" class="bg-zinc-300 h-2 w-48 scale-x-0"></div>
+			</div>
+			<div id="beat-change-indicator-separator" class="bg-zinc-300 h-3 w-1"></div>
+		</div>
     </div>
 
     <div
