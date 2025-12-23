@@ -90,6 +90,7 @@
 	}
 
 	function disarm() {
+		if (!PARAMS.armed) {return}
 		PARAMS.armed = false;
 		startButton.disabled = false;
 		armButton.disabled = false;
@@ -124,6 +125,7 @@
     }
 
     function reset() {
+		console.log("reset")
         stop()
         init()
     }
